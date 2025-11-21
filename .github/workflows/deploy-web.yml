@@ -1,0 +1,31 @@
+name: Build and deploy Expo web to GitHub Pages
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Use Node.js 18
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Expo web (static)
+        run: npx expo build:web --non-interactive
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          publish_dir: ./web-build
+          publish_branch: gh-pages
+          # Uses the automatic GITHUB_TOKEN provided in actions
+          github_token: ${{ secrets.GITHUB_TOKEN }}

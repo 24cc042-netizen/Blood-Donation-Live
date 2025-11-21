@@ -1,0 +1,44 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Users: only owner can read/write sensitive fields
+    match /users/{userId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update, delete: if request.auth != null && request.auth.uid == userId;
+    }
+
+    // Institutions: only owner can modify their institution doc
+    match /institutions/{instId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null; // creation should include ownerUid field
+      allow update, delete: if request.auth != null && request.resource.data.ownerUid == request.auth.uid;
+
+      // Inventory subcollection - only institution owner can modify
+      match /inventory/{invId} {
+        allow read: if request.auth != null;
+        allow create, update, delete: if request.auth != null && get(/databases/$(database)/documents/institutions/$(instId)).data.ownerUid == request.auth.uid;
+      }
+
+      // Blood requests - only verified institutions (owner) can create requests
+      match /requests/{reqId} {
+        allow read: if request.auth != null && resource.data.status == 'open';
+        allow create: if request.auth != null && get(/databases/$(database)/documents/institutions/$(instId)).data.ownerUid == request.auth.uid && get(/databases/$(database)/documents/institutions/$(instId)).data.isVerified == true;
+        allow update, delete: if request.auth != null && get(/databases/$(database)/documents/institutions/$(instId)).data.ownerUid == request.auth.uid;
+      }
+    }
+
+    // Blood drives public read
+    match /bloodDrives/{driveId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null; // should be restricted in production
+      allow update, delete: if request.auth != null; // restrict by owner in production
+    }
+
+    // General fallback - deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

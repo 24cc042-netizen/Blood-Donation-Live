@@ -1,0 +1,1 @@
+{"ast":null,"code":"","map":{"version":3,"names":[],"sources":["/workspaces/Blood-Donation-Live/node_modules/react-native-screens/src/components/shared/types.ts"],"sourcesContent":["export type ScrollEdgeEffect = 'automatic' | 'hard' | 'soft' | 'hidden';\n"],"mappings":"","ignoreList":[]},"metadata":{},"sourceType":"script","externalDependencies":[]}
